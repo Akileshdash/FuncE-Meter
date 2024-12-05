@@ -178,14 +178,22 @@ class GUI:
             self.file_var.set(file_path)
             module_name = os.path.splitext(os.path.basename(file_path))[0]
             try:
-                spec = importlib.util.spec_from_file_location(
-                    module_name, file_path)
+                # Dynamically import the module
+                spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
+
+                # Add the module to the dictionary
                 self.modules[module_name] = module
                 self.module_dropdown['values'] = list(self.modules.keys())
-            except:
-                print(f"{module_name} could not be loaded")
+
+                # Select the newly added module in the dropdown
+                self.module_var.set(module_name)
+
+                # Provide success feedback
+                self.output_text.insert("1.0", f"Module '{module_name}' loaded successfully.\n")
+            except Exception as e:
+                self.output_text.insert("1.0", f"Failed to load module '{module_name}': {e}\n")
 
     def choose_dataset(self):
         """Open file dialog to choose a file and update the entry field."""

@@ -1,20 +1,31 @@
-from pandas import isna
-from pyJoules.handler.csv_handler import CSVHandler
-from pyJoules.energy_meter import measure_energy
 import pandas as pd
-import time
-a = [1, 2, 3, 4]
-df_0 = pd.read_csv('/home/shiva/Downloads/data.csv')
 
-handler = CSVHandler("pandas-isna-2024-12-02 15:46:24.550676.csv")
+def calculate_average(file_path, column_name):
+    """
+    Calculate the average of a specific column in a CSV file.
 
-evaluated_args = {}
-raw_args = {}
-for key, value in raw_args.items():
-    try:
-        evaluated_args[key] = eval(value, globals(), locals())
-    except Exception as e:
-        evaluated_args[key] = value
+    Parameters:
+    - file_path (str): The path to the CSV file.
+    - column_name (str): The name of the column to calculate the average for.
 
-measure_energy(isna, handler=handler)(**evaluated_args)
-handler.save_data()
+    Returns:
+    - float: The average value of the column.
+    - str: A message if there are errors.
+    """
+    print(column_name)
+    df = pd.read_csv(file_path)
+    print(df[column_name])
+    # try:
+    # #     # Load the dataset
+    #     df = pd.read_csv(file_path)
+
+    #     # Check if the column exists
+    #     if column_name not in df.columns:
+    #         print("Column '{column_name}' not found in the dataset.")
+
+    #     # Calculate the average
+    #     average = df[column_name].mean()
+    #     print(f"The average value of '{column_name}' is {average:.2f}")
+
+    # except Exception as e:
+    #     print(f"Error processing file: {e}")
