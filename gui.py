@@ -179,7 +179,8 @@ class GUI:
             module_name = os.path.splitext(os.path.basename(file_path))[0]
             try:
                 # Dynamically import the module
-                spec = importlib.util.spec_from_file_location(module_name, file_path)
+                spec = importlib.util.spec_from_file_location(
+                    module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
@@ -191,9 +192,11 @@ class GUI:
                 self.module_var.set(module_name)
 
                 # Provide success feedback
-                self.output_text.insert("1.0", f"Module '{module_name}' loaded successfully.\n")
+                self.output_text.insert(
+                    "1.0", f"Module '{module_name}' loaded successfully.\n")
             except Exception as e:
-                self.output_text.insert("1.0", f"Failed to load module '{module_name}': {e}\n")
+                self.output_text.insert("1.0", f"""Failed to load module '{
+                                        module_name}': {e}\n""")
 
     def choose_dataset(self):
         """Open file dialog to choose a file and update the entry field."""
@@ -207,7 +210,7 @@ class GUI:
             try:
                 self.dataset[f'df_{self.df_count}'] = file_path
                 self.df_count += 1
-                self.output_text.insert("1.0", f'df_{self.df_count} added')
+                self.output_text.insert("1.0", f'df_{self.df_count-1} added')
             except:
                 print(f"{module_name} could not be loaded")
 
