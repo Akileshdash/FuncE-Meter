@@ -2,12 +2,14 @@ import os
 import time
 from functools import wraps
 import csv
+import pynvml
 
 
 class EnergyTracker:
     def __init__(self):
         self.rapl_path = "/sys/class/powercap/intel-rapl"
         self.domains = self._get_domains()
+        self.gpus = self._get_gpus()
         self.state = "idle"
 
     def _get_domains(self):
@@ -26,15 +28,30 @@ class EnergyTracker:
                 if not os.path.exists(domain_path):
                     break
                 domains[open(domain_path+"/name").read().strip()
-                        ] = domain_path+"/energy_uj"
+                        + "-" + str(socket)] = domain_path+"/energy_uj"
                 domain += 1
             socket += 1
         return domains
+
+    def _get_gpus(self):
+        try:
+            pynvml.nvmlInit()
+            gpus = {}
+            for i in range(pynvml.nvmlDeviceGetCount()):
+                handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                gpus[f"nvidia-gpu-{i}"] = handle
+            return gpus
+        except:
+            return None
 
     def _get_energy(self):
         energy = {}
         for domain in self.domains:
             energy[domain] = int(open(self.domains[domain]).read().strip())
+        if self.gpus:
+            for i in self.gpus:
+                energy[i] = pynvml.nvmlDeviceGetTotalEnergyConsumption(
+                    self.gpus[i])
         return energy
 
     def start(self):
@@ -60,6 +77,9 @@ class EnergyTracker:
         for domain in self.domains:
             energy[domain] = self.stop_energy[domain] - \
                 self.start_energy[domain]
+        if self.gpus:
+            for i in self.gpus:
+                energy[i] = self.stop_energy[i] - self.start_energy[i]
         return energy
 
     def save_csv(self, filename):
@@ -83,3 +103,12 @@ def measure_energy(func, fname):
         et.save_csv(f"{fname}")
         return result
     return wrapper
+
+
+if __name__ == "__main__":
+    et = EnergyTracker()
+    et.start()
+    time.sleep(5)
+    et.stop()
+    et.save_csv("test.csv")
+    print("Wrote measurement to test.csv")
