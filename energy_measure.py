@@ -1,10 +1,7 @@
-
-from functools import wraps
-import time
 import os
-from pandas import array
-import pandas
-a = [1, 2, 3]
+import time
+from functools import wraps
+import csv
 
 
 class EnergyTracker:
@@ -31,8 +28,6 @@ class EnergyTracker:
                 domains[open(domain_path+"/name").read().strip()
                         ] = domain_path+"/energy_uj"
                 domain += 1
-                print(
-                    open(domains[open(domain_path+"/name").read().strip()]).read().strip())
             socket += 1
         return domains
 
@@ -70,10 +65,12 @@ class EnergyTracker:
     def save_csv(self, filename):
         energy = self.compute()
         duration = self.stop_time - self.start_time
-        with open(filename, "w") as f:
-            f.write("Domain, Energy (Joules), Duration (s)\n")
+        with open(filename, "a") as f:
+            writer = csv.writer(f)
+            if f.tell() == 0:
+                writer.writerow(["Domain", "Energy (Joules)", "Duration (s)"])
             for domain in energy:
-                f.write(f"{domain}, {energy[domain]}, {duration}\n")
+                writer.writerow([domain, energy[domain], duration])
 
 
 def measure_energy(func, fname):
@@ -86,18 +83,3 @@ def measure_energy(func, fname):
         et.save_csv(f"{fname}")
         return result
     return wrapper
-
-
-evaluated_args = {}
-raw_args = {'data': '[1,2]'}
-for key, value in raw_args.items():
-    try:
-        evaluated_args[key] = eval(value, globals(), locals())
-    except Exception as e:
-        evaluated_args[key] = value
-et = EnergyTracker()
-et.start()
-result = array(**evaluated_args)
-et.stop()
-et.save_csv(f"pandas-array-2025-01-09 05:50:27.846075.csv")
-# measure_energy(array,'pandas-array-2025-01-09 05:50:27.846075.csv')(**evaluated_args)

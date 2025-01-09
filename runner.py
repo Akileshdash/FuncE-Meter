@@ -3,9 +3,8 @@ import io
 import contextlib
 import datetime
 
-MEASURE_ENERGY_IMPORT = "from pyJoules.energy_meter import measure_energy"
-CSV_HANDLER_IMPORT = "from pyJoules.handler.csv_handler import CSVHandler"
 INIT_DATA = open("init.config").read()
+MEASURE_ENERGY = open("energy_measure.py").read()
 
 
 class Runner:
@@ -18,16 +17,15 @@ class Runner:
         with contextlib.redirect_stdout(output):
             for _ in range(frquency):
                 if not csv:
-                    csv = f"{mname.strip()}-{fname.strip()}-{datetime.datetime.now()}.csv"
+                    csv = f"""{mname.strip()}-{fname.strip()
+                                               }-{datetime.datetime.now()}.csv"""
                 try:
                     exec(
                         f"""
 {INIT_DATA}
 {dataframes}
-{MEASURE_ENERGY_IMPORT}
-{CSV_HANDLER_IMPORT}
-handler = CSVHandler("{csv}")
 from {mname.strip()} import {fname}
+{MEASURE_ENERGY}
 
 evaluated_args = {{}}
 raw_args = {args}
@@ -35,12 +33,15 @@ for key, value in raw_args.items():
     try:
         evaluated_args[key] = eval(value, globals(), locals())
     except Exception as e:
-        evaluated_args[key] = value  
+        evaluated_args[key] = value
+et = EnergyTracker()
+et.start()
+result = {fname}(**evaluated_args)
+et.stop()
+et.save_csv(f"{csv}")
+# measure_energy({fname},'{csv}')(**evaluated_args)
 
-measure_energy({fname}, handler=handler)(**evaluated_args)
-handler.save_data()
-
-""")
+""", globals())
                     time.sleep(interval)
                 except SyntaxError as e:
                     print("Syntax Error:")
