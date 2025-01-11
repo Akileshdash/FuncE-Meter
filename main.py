@@ -6,9 +6,12 @@ def get_functions(module):
     functions = {}
     for name, obj in inspect.getmembers(module):
         print(name)
-        if inspect.isfunction(obj):
-            functions[name] = [
-                param.name for param in inspect.signature(obj).parameters.values()]
+        try:
+            if inspect.isfunction(obj):
+                functions[name] = [
+                    param.name for param in inspect.signature(obj).parameters.values()]
+        except:
+            pass
     return functions
 
 

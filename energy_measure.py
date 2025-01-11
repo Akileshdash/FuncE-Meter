@@ -88,7 +88,7 @@ class EnergyTracker:
         with open(filename, "a") as f:
             writer = csv.writer(f)
             if f.tell() == 0:
-                writer.writerow(["Domain", "Energy (Joules)", "Duration (s)"])
+                writer.writerow(["Domain", "Energy (micro joules)", "Duration (s)"])
             for domain in energy:
                 writer.writerow([domain, energy[domain], duration])
 

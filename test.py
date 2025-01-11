@@ -71,7 +71,7 @@ class EnergyTracker:
         energy = self.compute()
         duration = self.stop_time - self.start_time
         with open(filename, "w") as f:
-            f.write("Domain, Energy (Joules), Duration (s)\n")
+            f.write("Domain, Energy (micro joules), Duration (s)\n")
             for domain in energy:
                 f.write(f"{domain}, {energy[domain]}, {duration}\n")
 
