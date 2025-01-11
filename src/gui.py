@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
 from tkinter import ttk, StringVar, BooleanVar, filedialog
-from src.runner import Runner
+from runner import Runner
 import threading
 import importlib
 
