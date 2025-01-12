@@ -18,6 +18,7 @@ energy_measure_path = os.path.join(base_path, "energy_measure.py")
 INIT_DATA = open(init_config_path).read()
 MEASURE_ENERGY = open(energy_measure_path).read()
 
+
 class Runner:
 
     def run(self, mname: str, fname: str, args, frquency: int, interval: int, csv: str, dataset: dict) -> str:

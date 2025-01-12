@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
 import sys
-from tkinter import ttk, StringVar, BooleanVar, filedialog,messagebox
+from tkinter import ttk, StringVar, BooleanVar, filedialog, messagebox
 from runner import Runner
 import threading
 import importlib
@@ -14,6 +14,7 @@ else:  # Running as a script
 
 # Read files using the base path
 module_config_path = os.path.join(base_path, "module.config")
+
 
 class ScrollableFrame(tk.Frame):
     """A scrollable frame class to make any frame vertically scrollable."""
@@ -96,10 +97,10 @@ class GUI:
         self.left_frame = ScrollableFrame(self.root)
         self.left_frame.pack(side="left", fill="y", padx=10, pady=10)
 
-
         # Middle frame for notebook and status/output sections
         self.mid_frame = tk.Frame(self.root)
-        self.mid_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        self.mid_frame.pack(side="left", fill="both",
+                            expand=True, padx=10, pady=10)
 
         # Notebook widget for function tabs
         self.notebook = ttk.Notebook(self.mid_frame)
@@ -134,25 +135,31 @@ class GUI:
         self.init_function_list()
 
         # Right frame
-        self.right_frame = tk.Frame(self.root, padx=10, pady=10, bg="#f5f5f5", relief="groove")
-        self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
-        
+        self.right_frame = tk.Frame(
+            self.root, padx=10, pady=10, bg="#f5f5f5", relief="groove")
+        self.right_frame.pack(side="right", fill="both",
+                              expand=True, padx=10, pady=10)
+
         # Right frame for managing modules
-        tk.Label(self.right_frame, text="Module Manager", font=("Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
+        tk.Label(self.right_frame, text="Module Manager", font=(
+            "Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
 
         # Module list display
-        self.module_listbox = tk.Listbox(self.right_frame, width=30, height=15, selectmode="single", font=("Arial", 12))
+        self.module_listbox = tk.Listbox(
+            self.right_frame, width=30, height=15, selectmode="single", font=("Arial", 12))
         self.module_listbox.pack(pady=10)
 
         # Input for adding a new module
         self.module_entry = tk.Entry(self.right_frame, width=25)
         self.module_entry.pack(pady=5)
 
-        self.add_button = tk.Button(self.right_frame, text="Add Module", command=self.add_module)
+        self.add_button = tk.Button(
+            self.right_frame, text="Add Module", command=self.add_module)
         self.add_button.pack(pady=5)
 
         # Add a section below the module manager
-        tk.Label(self.right_frame, text="Dataset Manager", font=("Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
+        tk.Label(self.right_frame, text="Dataset Manager", font=(
+            "Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
 
         # Dataset table display using Treeview
         self.dataset_table = ttk.Treeview(
@@ -186,12 +193,14 @@ class GUI:
         new_module = self.module_entry.get().strip()
 
         if not new_module:
-            messagebox.showwarning("Input Error", "Please enter a module name.")
+            messagebox.showwarning(
+                "Input Error", "Please enter a module name.")
             return
 
         if new_module in self.modules.keys():
             # self.module_dropdown["values"] = list(self.modules.keys())
-            messagebox.showwarning("Duplicate Module", f"Module '{new_module}' already exists.")
+            messagebox.showwarning(
+                "Duplicate Module", f"Module '{new_module}' already exists.")
             return
 
         try:
@@ -199,7 +208,8 @@ class GUI:
             imported_module = importlib.import_module(new_module)
 
             # Add spaces for padding around the module name
-            padded_module = f"  {new_module}  "  # Add spaces before and after the module name
+            # Add spaces before and after the module name
+            padded_module = f"  {new_module}  "
 
             # Add the module to the module.config file
             with open(module_config_path, "a") as f:
@@ -207,13 +217,15 @@ class GUI:
 
             # Add to modules dictionary and update UI components
             self.modules[new_module] = imported_module
-            self.module_listbox.insert(tk.END, padded_module)  # Insert padded module name
+            # Insert padded module name
+            self.module_listbox.insert(tk.END, padded_module)
             self.update_module_dropdown()  # Update the dropdown with the new module
 
             # Clear the entry widget
             self.module_entry.delete(0, tk.END)
 
-            messagebox.showinfo("Success", f"Module '{new_module}' added successfully.")
+            messagebox.showinfo(
+                "Success", f"Module '{new_module}' added successfully.")
         except ModuleNotFoundError:
             messagebox.showerror("Error", f"Module '{new_module}' not found.")
         except Exception as e:
@@ -293,6 +305,7 @@ class GUI:
                 # Provide success feedback
                 self.output_text.insert(
                     "1.0", f"Module '{module_name}' loaded successfully.\n")
+                sys.path.append("/".join(file_path.split("/")[:-1]))
             except Exception as e:
                 self.output_text.insert("1.0", f"""Failed to load module '{
                                         module_name}': {e}\n""")
@@ -312,7 +325,8 @@ class GUI:
                 self.df_count += 1
 
                 # Insert a message in the output text box
-                self.output_text.insert("1.0", f"df_{self.df_count - 1} added: {module_name}\n")
+                self.output_text.insert(
+                    "1.0", f"df_{self.df_count - 1} added: {module_name}\n")
 
                 # Update the dataset table (Treeview)
                 self.dataset_table.insert(
