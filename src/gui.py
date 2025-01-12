@@ -137,6 +137,17 @@ class GUI:
         self.right_frame = tk.Frame(self.root, padx=10, pady=10, bg="lightgray", relief="groove", borderwidth=1)
         self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
+        # Add a section below the module manager
+        tk.Label(self.right_frame, text="Dataset Manager", font=("Arial", 14, "bold"), bg="lightgray").pack(pady=(10, 5))
+
+        # Dataset list display
+        self.dataset_listbox = tk.Listbox(self.right_frame, width=30, height=10, selectmode="single", font=("Arial", 12))
+        self.dataset_listbox.pack(pady=10)
+
+        # Add a button to refresh the dataset list
+        self.refresh_button = tk.Button(self.right_frame, text="Refresh Datasets")
+        self.refresh_button.pack(pady=5)
+
         tk.Label(self.right_frame, text="Module Manager", font=("Arial", 14, "bold"), bg="lightgray").pack(pady=(10, 5))
 
         # Module list display
@@ -287,11 +298,20 @@ class GUI:
             self.data_var.set(file_path)
             module_name = os.path.splitext(os.path.basename(file_path))[0]
             try:
+                # Add the dataset to the dictionary
                 self.dataset[f'df_{self.df_count}'] = file_path
                 self.df_count += 1
-                self.output_text.insert("1.0", f'df_{self.df_count-1} added')
-            except:
-                print(f"{module_name} could not be loaded")
+
+                # Insert a message in the output text box
+                self.output_text.insert("1.0", f"df_{self.df_count - 1} added: {module_name}\n")
+
+                # Update the dataset table (listbox)
+                self.dataset_listbox.insert(
+                    tk.END, f"df_{self.df_count - 1}: {module_name}"
+                )
+            except Exception as e:
+                print(f"{module_name} could not be loaded: {e}")
+
 
     def init_function_list(self):
         """Create scrollable list of function checkboxes."""
