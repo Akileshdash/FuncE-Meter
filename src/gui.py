@@ -51,7 +51,7 @@ class ScrollableFrame(tk.Frame):
 class GUI:
     def __init__(self, functionExtractor):
         self.root = tk.Tk()
-        self.root.title("Energy Measurement Tool")
+        self.root.title("Software Library Energy Meter")
         self.df_count = 0
         # Set up modules dictionary
         self.modules = {}
@@ -88,7 +88,7 @@ class GUI:
         self.header_frame = tk.Frame(self.root)
         self.header_frame.pack(fill="x", pady=10)
         tk.Label(
-            self.header_frame, text="Energy Measurement Tool",
+            self.header_frame, text="Software Library Energy Meter",
             font=("Arial", 16, "bold")
         ).pack()
 
@@ -110,7 +110,7 @@ class GUI:
         self.notebook.add(self.default_tab, text="Welcome")
         tk.Label(
             self.default_tab,
-            text="Welcome to the Energy Measurement Tool!\n\nSelect a module and function on the left to begin.",
+            text="Welcome to the Software Library Energy Meter!\n\nSelect a module and function on the left to begin.",
             font=("Arial", 12), justify="center"
         ).pack(expand=True, padx=20, pady=20)
 
@@ -133,22 +133,12 @@ class GUI:
         self.init_module_dropdown()
         self.init_function_list()
 
-        # Right frame for managing modules
-        self.right_frame = tk.Frame(self.root, padx=10, pady=10, bg="lightgray", relief="groove", borderwidth=1)
+        # Right frame
+        self.right_frame = tk.Frame(self.root, padx=10, pady=10, bg="#f5f5f5", relief="groove")
         self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
-
-        # Add a section below the module manager
-        tk.Label(self.right_frame, text="Dataset Manager", font=("Arial", 14, "bold"), bg="lightgray").pack(pady=(10, 5))
-
-        # Dataset list display
-        self.dataset_listbox = tk.Listbox(self.right_frame, width=30, height=10, selectmode="single", font=("Arial", 12))
-        self.dataset_listbox.pack(pady=10)
-
-        # Add a button to refresh the dataset list
-        self.refresh_button = tk.Button(self.right_frame, text="Refresh Datasets")
-        self.refresh_button.pack(pady=5)
-
-        tk.Label(self.right_frame, text="Module Manager", font=("Arial", 14, "bold"), bg="lightgray").pack(pady=(10, 5))
+        
+        # Right frame for managing modules
+        tk.Label(self.right_frame, text="Module Manager", font=("Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
 
         # Module list display
         self.module_listbox = tk.Listbox(self.right_frame, width=30, height=15, selectmode="single", font=("Arial", 12))
@@ -160,6 +150,22 @@ class GUI:
 
         self.add_button = tk.Button(self.right_frame, text="Add Module", command=self.add_module)
         self.add_button.pack(pady=5)
+
+        # Add a section below the module manager
+        tk.Label(self.right_frame, text="Dataset Manager", font=("Arial", 14, "bold"), bg="#f5f5f5").pack(pady=(10, 5))
+
+        # Dataset table display using Treeview
+        self.dataset_table = ttk.Treeview(
+            self.right_frame,
+            columns=("ID", "Dataset Name"),
+            show="headings",
+            height=10
+        )
+        self.dataset_table.heading("ID", text="ID")
+        self.dataset_table.heading("Dataset Name", text="Dataset Name")
+        self.dataset_table.column("ID", anchor="center", width=80)
+        self.dataset_table.column("Dataset Name", anchor="w", width=200)
+        self.dataset_table.pack(pady=10, fill="x")
 
     def load_modules(self):
         """Load modules from module.config and display them in the listbox and dropdown."""
@@ -192,13 +198,16 @@ class GUI:
             # Dynamically import the module to check if it exists and is valid
             imported_module = importlib.import_module(new_module)
 
+            # Add spaces for padding around the module name
+            padded_module = f"  {new_module}  "  # Add spaces before and after the module name
+
             # Add the module to the module.config file
             with open(module_config_path, "a") as f:
                 f.write(new_module + "\n")
 
             # Add to modules dictionary and update UI components
             self.modules[new_module] = imported_module
-            self.module_listbox.insert(tk.END, new_module)
+            self.module_listbox.insert(tk.END, padded_module)  # Insert padded module name
             self.update_module_dropdown()  # Update the dropdown with the new module
 
             # Clear the entry widget
@@ -305,13 +314,12 @@ class GUI:
                 # Insert a message in the output text box
                 self.output_text.insert("1.0", f"df_{self.df_count - 1} added: {module_name}\n")
 
-                # Update the dataset table (listbox)
-                self.dataset_listbox.insert(
-                    tk.END, f"df_{self.df_count - 1}: {module_name}"
+                # Update the dataset table (Treeview)
+                self.dataset_table.insert(
+                    "", "end", values=(f"df_{self.df_count - 1}", module_name)
                 )
             except Exception as e:
                 print(f"{module_name} could not be loaded: {e}")
-
 
     def init_function_list(self):
         """Create scrollable list of function checkboxes."""
