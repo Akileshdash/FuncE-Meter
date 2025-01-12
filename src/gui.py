@@ -1,10 +1,19 @@
 import tkinter as tk
 import os
-from tkinter import ttk, StringVar, BooleanVar, filedialog
+import sys
+from tkinter import ttk, StringVar, BooleanVar, filedialog,messagebox
 from runner import Runner
 import threading
 import importlib
 
+# Determine the base path
+if getattr(sys, 'frozen', False):  # Running as a PyInstaller executable
+    base_path = sys._MEIPASS
+else:  # Running as a script
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
+# Read files using the base path
+module_config_path = os.path.join(base_path, "module.config")
 
 class ScrollableFrame(tk.Frame):
     """A scrollable frame class to make any frame vertically scrollable."""
@@ -48,7 +57,7 @@ class GUI:
         self.modules = {}
         self.dataset = {}
         try:
-            with open('module.config') as mcnf:
+            with open(module_config_path) as mcnf:
                 names = mcnf.readlines()
                 for name in names:
                     try:
@@ -87,13 +96,13 @@ class GUI:
         self.left_frame = ScrollableFrame(self.root)
         self.left_frame.pack(side="left", fill="y", padx=10, pady=10)
 
-        # Right frame for notebook and status/output sections
-        self.right_frame = tk.Frame(self.root)
-        self.right_frame.pack(side="right", fill="both",
-                              expand=True, padx=10, pady=10)
+
+        # Middle frame for notebook and status/output sections
+        self.mid_frame = tk.Frame(self.root)
+        self.mid_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # Notebook widget for function tabs
-        self.notebook = ttk.Notebook(self.right_frame)
+        self.notebook = ttk.Notebook(self.mid_frame)
         self.notebook.pack(fill="both", expand=True)
 
         # Default tab with welcome message
@@ -107,7 +116,7 @@ class GUI:
 
         # Bottom section for status and output display
         self.status_frame = tk.Frame(
-            self.right_frame, relief="sunken", borderwidth=1)
+            self.mid_frame, relief="sunken", borderwidth=1)
         self.status_frame.pack(fill="x", pady=10)
 
         # Loading label
@@ -123,6 +132,76 @@ class GUI:
         # Initialize module dropdown and function list
         self.init_module_dropdown()
         self.init_function_list()
+
+        # Right frame for managing modules
+        self.right_frame = tk.Frame(self.root, padx=10, pady=10, bg="lightgray", relief="groove", borderwidth=1)
+        self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+
+        tk.Label(self.right_frame, text="Module Manager", font=("Arial", 14, "bold"), bg="lightgray").pack(pady=(10, 5))
+
+        # Module list display
+        self.module_listbox = tk.Listbox(self.right_frame, width=30, height=15, selectmode="single", font=("Arial", 12))
+        self.module_listbox.pack(pady=10)
+
+        # Input for adding a new module
+        self.module_entry = tk.Entry(self.right_frame, width=25)
+        self.module_entry.pack(pady=5)
+
+        self.add_button = tk.Button(self.right_frame, text="Add Module", command=self.add_module)
+        self.add_button.pack(pady=5)
+
+    def load_modules(self):
+        """Load modules from module.config and display them in the listbox and dropdown."""
+        try:
+            with open("module.config", "r") as f:
+                self.modules = f.read().splitlines()
+                self.module_listbox.delete(0, tk.END)  # Clear current list
+                for module in self.modules:
+                    self.module_listbox.insert(tk.END, module)
+
+                # Update the module dropdown
+                self.update_module_dropdown()
+        except FileNotFoundError:
+            messagebox.showerror("Error", "module.config file not found.")
+
+    def add_module(self):
+        """Add a new module to module.config and update the listbox and dropdown."""
+        new_module = self.module_entry.get().strip()
+
+        if not new_module:
+            messagebox.showwarning("Input Error", "Please enter a module name.")
+            return
+
+        if new_module in self.modules.keys():
+            # self.module_dropdown["values"] = list(self.modules.keys())
+            messagebox.showwarning("Duplicate Module", f"Module '{new_module}' already exists.")
+            return
+
+        try:
+            # Dynamically import the module to check if it exists and is valid
+            imported_module = importlib.import_module(new_module)
+
+            # Add the module to the module.config file
+            with open(module_config_path, "a") as f:
+                f.write(new_module + "\n")
+
+            # Add to modules dictionary and update UI components
+            self.modules[new_module] = imported_module
+            self.module_listbox.insert(tk.END, new_module)
+            self.update_module_dropdown()  # Update the dropdown with the new module
+
+            # Clear the entry widget
+            self.module_entry.delete(0, tk.END)
+
+            messagebox.showinfo("Success", f"Module '{new_module}' added successfully.")
+        except ModuleNotFoundError:
+            messagebox.showerror("Error", f"Module '{new_module}' not found.")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def update_module_dropdown(self):
+        """Update the module dropdown with the current list of modules."""
+        self.module_dropdown["values"] = list(self.modules.keys())
 
     def init_module_dropdown(self):
         """Create dropdown for module selection."""

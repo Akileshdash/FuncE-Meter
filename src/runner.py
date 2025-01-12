@@ -1,11 +1,22 @@
+import os
+import sys
 import time
 import io
 import contextlib
 import datetime
 
-INIT_DATA = open("init.config").read()
-MEASURE_ENERGY = open("energy_measure.py").read()
+# Determine the base path
+if getattr(sys, 'frozen', False):  # Running as a PyInstaller executable
+    base_path = sys._MEIPASS
+else:  # Running as a script
+    base_path = os.path.dirname(os.path.abspath(__file__))
 
+# Read files using the base path
+init_config_path = os.path.join(base_path, "init.config")
+energy_measure_path = os.path.join(base_path, "energy_measure.py")
+
+INIT_DATA = open(init_config_path).read()
+MEASURE_ENERGY = open(energy_measure_path).read()
 
 class Runner:
 
